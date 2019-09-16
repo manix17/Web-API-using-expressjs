@@ -1,59 +1,66 @@
 const express = require("express");
 const Joi = require("@hapi/joi");
 const router = express.Router();
+const mongoose = require("mongoose");
 
-router.get("/", function(req, res) {
+const Course = mongoose.model(
+  "Course",
+  new mongoose.Schema({
+    name: {
+      type: String,
+      required: true,
+      minLength: 5,
+      maxLength: 255,
+      trim: true
+    }
+  })
+);
+
+router.get("/", async function(req, res) {
+  const courses = await Course.find().sort("name");
   res.status(200).send(courses);
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const result = courseSchema.validate(req.body);
   if (result.error) {
     res.status(400).send(result.error.details[0].message);
     return;
   }
-  const course = { id: courses.length + 1, name: req.body.name };
-  courses.push(course);
+  let course = new Course({ name: req.body.name });
+  course = await course.save();
   res.status(201).send(course);
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   const result = courseSchema.validate(req.body);
-  console.log("put called", result);
+  // console.log("put called", result);
   if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
+    return res.status(400).send(result.error.details[0].message);
   }
-  const course = courses.find(c => (c.id = parseInt(req.params.id)));
+  const course = await Course.findByIdAndUpdate(
+    req.params.id,
+    {
+      name: req.body.name
+    },
+    { new: true }
+  );
   if (!course) {
-    res.status(404).send("Course Not Found");
-    return;
+    return res.status(404).send("Course Not Found");
   }
-  course.name = req.body.name;
-  res.status(200).send(course);
+  res.send(course);
 });
 
-router.delete("/:id", (req, res) => {
-  const course = courses.find(c => c.id === parseInt(req.params.id));
-  if (!course) {
-    res.status(404).send("Course Not Found");
-    return;
-  }
-  const index = courses.indexOf(course);
-  courses.splice(index, 1);
-  res.status(200).send(course);
+router.delete("/:id", async (req, res) => {
+  const course = await Course.findByIdAndRemove(req.params.id);
+  if (!course) return res.status(404).send("Course Not Found");
+  res.send(course);
 });
 
 const courseSchema = Joi.object({
   name: Joi.string()
-    .alphanum()
+    .trim()
     .required()
 });
-
-let courses = [
-  { id: 1, name: "Querying in MongoDB" },
-  { id: 2, name: "Introduction to C#" },
-  { id: 3, name: "Async & Await" }
-];
 
 module.exports = router;
