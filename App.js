@@ -1,42 +1,20 @@
 var express = require("express");
-// const Joi = require("@hapi/joi");
 const log = require("./middleware/logger");
 const morgan = require("morgan");
 const config = require("config");
 const debug = require("debug")("app:startup"); //for Debugging
-const dbDebugger = require("debug")("app:db");
-const courses = require("./routes/courses");
-const home = require("./routes/home");
+// const dbDebugger = require("debug")("app:db");
+// const courses = require("./routes/courses");
 const mongoose = require("mongoose");
 
+//Routes Import
+const customers = require("./routes/customers");
+const home = require("./routes/home");
+const genres = require("./routes/genres");
+const movies = require("./routes/movies");
+const rentals = require("./routes/rentals");
+
 var app = express();
-
-const uri = config.get("mongodbConString");
-debug("--------------------------ENTRY POINT---------------------------");
-
-//MongoDB
-mongoose
-  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    debug("Connected to MongoDB");
-  })
-  .catch(err => debug("Could not Connect to mongoDb, Error: ", err));
-
-//Mongoose Schema
-const courseSchema = new mongoose.Schema({
-  name: String,
-  author: String,
-  tags: [String],
-  date: { type: Date, default: Date.now },
-  isPublished: Boolean
-});
-
-mongoose.model({
-  name: "Node Js",
-  author: "Manish",
-  tags: ["backend", "express"],
-  isPublished: true
-});
 
 //Middlewares
 app.use(express.json());
@@ -50,19 +28,35 @@ if (app.get("env") === "development") {
   debug("morgan enabled...");
 }
 
-app.use("/api/courses", courses); // Using the Courses Router
+// app.use("/api/courses", courses); // Using the Courses Router
 app.use(home); //Server root router for serving Template engine
+app.use("/api/customers", customers);
+app.use("/api/genres", genres);
+app.use("/api/movies", movies);
+app.use("/api/rentals", rentals);
 
 //Configuration
-console.log("Appplication Name : ", config.get("name"));
-console.log("Mail Server host : ", config.get("mail.host"));
-console.log("Mail Password : ", config.get("mail.password"));
+// console.log("Appplication Name : ", config.get("name"));
+// console.log("Mail Server host : ", config.get("mail.host"));
+// console.log("Mail Password : ", config.get("mail.password"));
 
 //DB Work
-dbDebugger("connected to Database....");
+// dbDebugger("connected to Database....");
 
 app.set("view engine", "pug");
 app.set("views", "./views");
+
+mongoose
+  .connect(config.get("mongoConString"), {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    debug("Connected to MongoDB..");
+  })
+  .catch(() => {
+    debug("Connecting to MongoDB failed..");
+  });
 
 const port = 3000;
 app.listen(port, () => {
