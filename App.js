@@ -1,16 +1,17 @@
 var express = require("express");
-// const Joi = require("@hapi/joi");
 const log = require("./middleware/logger");
 const morgan = require("morgan");
 const config = require("config");
 const debug = require("debug")("app:startup"); //for Debugging
 // const dbDebugger = require("debug")("app:db");
-const courses = require("./routes/courses");
-const home = require("./routes/home");
+// const courses = require("./routes/courses");
 const mongoose = require("mongoose");
+
+//Routes Import
 const customers = require("./routes/customers");
-// const { Customer, validate } = require("./models/customer");
-// console.log(Customer, validate);
+const home = require("./routes/home");
+const genres = require("./routes/genres");
+const movies = require("./routes/movies");
 
 var app = express();
 
@@ -26,9 +27,11 @@ if (app.get("env") === "development") {
   debug("morgan enabled...");
 }
 
-app.use("/api/courses", courses); // Using the Courses Router
+// app.use("/api/courses", courses); // Using the Courses Router
 app.use(home); //Server root router for serving Template engine
 app.use("/api/customers", customers);
+app.use("/api/genres", genres);
+app.use("/api/movies", movies);
 
 //Configuration
 // console.log("Appplication Name : ", config.get("name"));
