@@ -3,5 +3,6 @@
   "mail": {
     "host": "dev-mail-server",
     "username": ""
-  }
+  },
+  "mongodbConString": "mongodb+srv://m001-student:m001-mongodb-basics@sandbox-usnyn.mongodb.net/playground"
 }

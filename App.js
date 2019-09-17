@@ -1,5 +1,5 @@
 var express = require("express");
-const Joi = require("@hapi/joi");
+// const Joi = require("@hapi/joi");
 const log = require("./middleware/logger");
 const morgan = require("morgan");
 const config = require("config");
@@ -7,33 +7,36 @@ const debug = require("debug")("app:startup"); //for Debugging
 const dbDebugger = require("debug")("app:db");
 const courses = require("./routes/courses");
 const home = require("./routes/home");
-// const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 var app = express();
 
-const MongoClient = require("mongodb").MongoClient;
-const uri =
-  "mongodb+srv://m001-student:classymango525@sandbox-shard-00-01-usnyn.mongodb.net";
-const client = new MongoClient(uri, { useNewUrlParser: true });
-client.connect(err => {
-  debug("Error: ", err);
-  if (!err) {
-    const collection = client.db("test").collection("devices");
-    // perform actions on the collection object
-    client.close();
-  }
-});
+const uri = config.get("mongodbConString");
+debug("--------------------------ENTRY POINT---------------------------");
 
 //MongoDB
-// mongoose
-//   .connect(
-//     "mongodb+srv://m001-student:classymango525@sandbox-usnyn.mongodb.net",
-//     { useNewUrlParser: true }
-//   )
-//   .then(() => {
-//     debug("Connected to MongoDB");
-//   })
-//   .catch(err => debug("Could not Connect to mongoDb, Error: ", err));
+mongoose
+  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    debug("Connected to MongoDB");
+  })
+  .catch(err => debug("Could not Connect to mongoDb, Error: ", err));
+
+//Mongoose Schema
+const courseSchema = new mongoose.Schema({
+  name: String,
+  author: String,
+  tags: [String],
+  date: { type: Date, default: Date.now },
+  isPublished: Boolean
+});
+
+mongoose.model({
+  name: "Node Js",
+  author: "Manish",
+  tags: ["backend", "express"],
+  isPublished: true
+});
 
 //Middlewares
 app.use(express.json());
